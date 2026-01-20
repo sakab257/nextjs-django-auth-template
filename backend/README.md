@@ -33,8 +33,8 @@ Template d'authentification Django REST Framework avec JWT stockés dans des coo
 ### 1. Cloner et créer l'environnement virtuel
 
 ```bash
-git clone <repo-url>
-cd <project-name>
+git clone https://github.com/sakab257/nextjs-django-auth-template
+cd backend
 python3 -m venv .venv
 source .venv/bin/activate  # Linux/Mac
 # ou .venv\Scripts\activate  # Windows

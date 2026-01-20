@@ -27,12 +27,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import SignInSerializer, SignUpSerializer, UserSerializer
 
+
 class SignUpView(APIView):
     """
     Inscription d'un nouvel utilisateur.
-    
+
     POST /api/auth/signup/
-    
+
     Données :
     {
         "username": "boussa",
@@ -42,19 +43,44 @@ class SignUpView(APIView):
         "password": "MotDePasse123!",
         "password2": "MotDePasse123!"
     }
-    
+
     Réponses :
-    - 201 : Compte créé avec succès
-    - 400 : Données invalides (email déjà pris, mot de passe trop faible, etc.)
+    - 201 : Compte créé + connecté (cookies dans la réponse)
+    - 400 : Données invalides
     """
     permission_classes = [AllowAny]
-    
+
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            return Response(UserSerializer(user).data,status=status.HTTP_201_CREATED)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        # Générer les tokens
+        refresh = RefreshToken.for_user(user)
+
+        response = Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+
+        # Ajouter les cookies (comme dans LoginView)
+        response.set_cookie(
+            key='access_token',
+            value=str(refresh.access_token),
+            max_age=60 * 15,
+            httponly=True,
+            secure=not settings.DEBUG,
+            samesite='Lax',
+        )
+        response.set_cookie(
+            key='refresh_token',
+            value=str(refresh),
+            max_age=60 * 60 * 24 * 7,
+            httponly=True,
+            secure=not settings.DEBUG,
+            samesite='Lax',
+        )
+
+        return response
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -97,7 +123,7 @@ class SignInView(APIView):
         refresh = RefreshToken.for_user(user)
 
         # Préparer la réponse
-        response = Response(UserSerializer(user).data)
+        response = Response(UserSerializer(user).data, status=status.HTTP_200_OK)
 
         # Ajouter les cookies
         response.set_cookie(
@@ -219,10 +245,8 @@ class MeView(APIView):
     - 200 : Informations de l'utilisateur
     - 401 : Non authentifié
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated];
     
     def get(self, request):
         # request.user est rempli automatiquement par CookieJWTAuthentication
-        return Response({
-            'user': UserSerializer(request.user).data
-        })
+        return Response(UserSerializer(request.user).data)
