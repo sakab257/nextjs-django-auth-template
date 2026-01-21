@@ -47,8 +47,8 @@ pnpm install
 ### 2. Configurer les variables d'environnement
 
 ```bash
-cp .env.example .env.local
-# Éditer .env.local avec vos valeurs
+cp .env.example .env
+# Éditer .env avec vos valeurs
 ```
 
 ```env

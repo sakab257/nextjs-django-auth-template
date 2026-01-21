@@ -7,6 +7,7 @@ import { User } from "@/lib/types";
 interface AuthContextType {
     user: User | null;
     loading: boolean;
+    loggingOut: boolean;
     refresh: () => Promise<void>;
     logout: () => Promise<void>;
 }
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [loggingOut, setLoggingOut] = useState(false);
 
     // Charge l'utilisateur au démarrage
     async function loadUser() {
@@ -36,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Déconnexion
     async function logout() {
+        setLoggingOut(true);
         await authSignOut();
         setUser(null);
     }
@@ -45,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, loading, refresh, logout }}>
+        <AuthContext.Provider value={{ user, loading, loggingOut, refresh, logout }}>
         {children}
         </AuthContext.Provider>
     );
