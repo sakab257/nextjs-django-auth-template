@@ -137,13 +137,15 @@ curl -X POST http://localhost:8000/api/auth/signout/ -b cookies.txt
 Pour que le frontend puisse envoyer/recevoir les cookies :
 
 ```typescript
-// Toutes les requêtes doivent inclure credentials: 'include'
-const response = await fetch('http://localhost:8000/api/auth/signin/', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  credentials: 'include',  // ← Important !
-  body: JSON.stringify({ username, password }),
-});
+try {
+      const response = await api.post("/auth/signin/", data);
+      return response.data;
+  } catch (error) {
+      if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.error || "Identifiants incorrects");
+      }
+      throw new Error("Erreur de connexion");
+  }
 ```
 
 ## 🔒 Sécurité
@@ -156,13 +158,9 @@ const response = await fetch('http://localhost:8000/api/auth/signin/', {
 
 ## 📦 Dépendances
 
-- Django 5.x
+- Django
 - djangorestframework
 - djangorestframework-simplejwt
 - django-cors-headers
 - psycopg2-binary
 - python-dotenv
-
-## 📄 Licence
-
-MIT
